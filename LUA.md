@@ -28,4 +28,4 @@ Arquivos privados e SQLite são serviços assíncronos do SDK. Declare `storage_
 
 Para registrar diagnósticos, use `startk.log('info', 'Mensagem')`. Os níveis aceitos são `debug`, `info`, `warn` e `error`.
 
-Os contratos completos do pacote, do formulário e da sessão estão na [documentação do StartK](../startk/docs/next/app-platform-solution.md). Na raiz de `startk/`, verifique um pacote com `rtk make current-app-check APP=basic` e gere o pacote com `rtk make current-app-package APP=basic`.
+Os contratos completos do pacote, do formulário e da sessão estão na [documentação do StartK](../startk/docs/README.md). Na raiz de `startk/`, verifique um pacote com `rtk make current-app-check APP=basic` e gere o pacote com `rtk make current-app-package APP=basic`.
