@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "apps": [
+    {"path": "basic", "id": "org.startk.basic", "version": "0.1.0"},
+    {"path": "calculator", "id": "org.startk.calculator", "version": "0.1.0"},
+    {"path": "checklist", "id": "org.startk.checklist", "version": "0.1.0"},
+    {"path": "collections", "id": "org.startk.collections", "version": "0.1.0"},
+    {"path": "converter", "id": "org.startk.converter", "version": "0.1.0"},
+    {"path": "decisions", "id": "org.startk.decisions", "version": "0.1.0"},
+    {"path": "editor", "id": "org.startk.editor", "version": "0.1.0"},
+    {"path": "forms", "id": "org.startk.forms", "version": "0.1.0"},
+    {"path": "foundations", "id": "org.startk.foundations", "version": "0.1.0"},
+    {"path": "ipc-storage", "id": "org.startk.ipc-storage", "version": "0.2.0"},
+    {"path": "notes", "id": "org.startk.notes", "version": "0.1.0"},
+    {"path": "registration", "id": "org.startk.registration", "version": "0.2.0"},
+    {"path": "values", "id": "org.startk.values", "version": "0.1.0"}
+  ]
+}
