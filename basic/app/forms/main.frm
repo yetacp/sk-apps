@@ -5,7 +5,7 @@ form:
   align: stretch
   children:
     - type: title_bar
-      caption: Controles fundamentais
+      caption: Controles
       left:
         {
           id: close,
@@ -30,16 +30,31 @@ form:
                 align: stretch
                 children:
                   - { type: label, caption: Seleção }
-                  - { type: check_box, id: wifi, field: wifi, caption: Wi-Fi }
+                  - {
+                      type: check_box,
+                      id: wifi,
+                      field: wifi,
+                      caption: Wi-Fi,
+                      action: "controls.wifi",
+                    }
+                  - {
+                      type: check_box,
+                      id: disabled,
+                      field: disabled,
+                      caption: Desabilitado,
+                      enabled: false,
+                    }
                   - {
                       type: toggle,
                       id: night,
                       field: night,
                       caption: Modo noturno,
+                      action: "controls.night",
                     }
                   - type: radio_group
                     id: theme
                     field: theme
+                    action: "controls.theme"
                     options:
                       - { value: light, caption: Tema claro }
                       - { value: dark, caption: Tema escuro }
@@ -64,7 +79,10 @@ form:
                       placeholder: Notas,
                       rows: 2,
                     }
-                  - { type: text_box, caption: Somente leitura }
+                  - {
+                      type: text_box,
+                      caption: "Texto somente leitura\nem mais de uma linha.",
+                    }
                   - {
                       type: progress,
                       id: volumeProgress,
@@ -80,6 +98,7 @@ form:
                       min: 0,
                       max: 100,
                       step: 5,
+                      action: "controls.volume",
                     }
                   - {
                       type: number_picker,
@@ -87,4 +106,9 @@ form:
                       field: page,
                       min: 1,
                       max: 20,
+                      action: "controls.page",
                     }
+                  - type: scroll_bar
+                    offset_field: offset
+                    viewport: 5
+                    content: 20

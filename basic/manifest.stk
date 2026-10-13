@@ -1,8 +1,8 @@
 id = "org.startk.basic"
-title = "StartK Basic"
-label = "Básico"
+title = "StartK Controles"
+label = "Controles"
 icon = "check-square"
-version = "0.1.0"
+version = "0.2.0"
 api = 2
 entrypoint = "app/main.lua"
 [capabilities]
