@@ -20,5 +20,10 @@ form:
       children:
         - { type: text, id: status, field: message }
         - { type: text_box, id: postTitle, field: post_title }
-        - { type: button, id: load, caption: Consultar post, action: "post.load" }
+        - {
+            type: button,
+            id: load,
+            caption: Consultar post,
+            action: "post.load",
+          }
         - { type: button, id: send, caption: Enviar post, action: "post.send" }
