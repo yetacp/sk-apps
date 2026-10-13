@@ -1,0 +1,18 @@
+id = "org.startk.foundations"
+title = "StartK Foundations"
+label = "Fundações"
+icon = "layout"
+version = "0.1.0"
+api = 2
+entrypoint = "app/main.lua"
+[capabilities]
+storage_private = false
+workspace_read = false
+workspace_write = false
+network = []
+clipboard = false
+tool_run = []
+[limits]
+memory_mb = 16
+storage_mb = 1
+requests_in_flight = 4
