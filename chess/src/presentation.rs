@@ -72,32 +72,62 @@ fn screen(view: GameView) -> Node {
             Some(("close".to_owned(), Some("arrow-left".to_owned()), None)),
             Vec::new(),
         ),
-        Node::text(view.status),
-        Node::text(view.notice.unwrap_or_else(|| {
-            format!(
-                "{} · Last move: {}",
-                view.opponent,
-                view.last_move.as_deref().unwrap_or("New game")
-            )
-        })),
-        Node::chess_board(
-            "board".to_owned(),
-            board,
-            marks.into_iter().collect(),
-            selected,
-            view.flipped,
+        Node::column_with_layout(
+            vec![
+                Node::text(view.status),
+                Node::text(view.notice.unwrap_or_else(|| {
+                    format!(
+                        "{} · Last move: {}",
+                        view.opponent,
+                        view.last_move.as_deref().unwrap_or("New game")
+                    )
+                })),
+            ],
+            0,
+            4,
+            Alignment::Center,
         ),
-        button_row([
-            ("undo", "Undo"),
-            ("new-game", "New game"),
-            ("opponent", view.opponent),
-        ]),
-        button_row([
-            ("difficulty", view.difficulty),
-            ("orientation", "Flip board"),
-            ("draw", "Agree draw"),
-            ("resign", "Resign"),
-        ]),
+        Node::row_with_spacing(
+            vec![
+                Node::space(48, 0),
+                Node::row_with_spacing(
+                    vec![
+                        Node::column_with_spacing(
+                            vec![
+                                icon_button("undo", "arrow-counter-clockwise"),
+                                icon_button("new-game", "arrow-clockwise"),
+                                icon_button(
+                                    "opponent",
+                                    if view.opponent == "Two players" {
+                                        "person"
+                                    } else {
+                                        "robot"
+                                    },
+                                ),
+                                icon_button("difficulty", "brain"),
+                                icon_button("orientation", "arrows-left-right"),
+                                icon_button("draw", "handshake"),
+                                icon_button("resign", "flag-checkered"),
+                            ],
+                            0,
+                            16,
+                        ),
+                        Node::chess_board(
+                            "board".to_owned(),
+                            board,
+                            marks.into_iter().collect(),
+                            selected,
+                            view.flipped,
+                        ),
+                    ],
+                    0,
+                    24,
+                ),
+                Node::space(48, 0),
+            ],
+            0,
+            0,
+        ),
     ];
 
     if !view.promotion_choices.is_empty() {
@@ -128,13 +158,14 @@ fn screen(view: GameView) -> Node {
         children.push(Node::text(outcome));
     }
     if let Some((title, message)) = view.confirmation {
-        children.push(Node::confirm_box(
+        children.push(Node::dialog(
             title.to_owned(),
             message.to_owned(),
-            "confirm-result".to_owned(),
-            "cancel-result".to_owned(),
-            "Confirm".to_owned(),
-            "Keep playing".to_owned(),
+            vec![
+                ("cancel-result".to_owned(), "Keep playing".to_owned()),
+                ("confirm-result".to_owned(), "Confirm".to_owned()),
+            ],
+            true,
         ));
     }
     Node::form(
@@ -142,6 +173,10 @@ fn screen(view: GameView) -> Node {
         Vec::new(),
         Node::column_with_layout(children, 0, 12, Alignment::Center),
     )
+}
+
+fn icon_button(id: &str, icon: &str) -> Node {
+    Node::icon_button(id.to_owned(), icon.to_owned(), None, true)
 }
 
 fn button_row(buttons: impl IntoIterator<Item = (&'static str, &'static str)>) -> Node {
