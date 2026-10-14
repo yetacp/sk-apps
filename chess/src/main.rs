@@ -10,7 +10,7 @@ use std::{
 
 use startk_app_client::Client;
 use startk_chess_core::run_session;
-use startk_protocol::{SessionId, SessionNonce};
+use startk_protocol::{SessionId, SessionNonce, message::LogLevel};
 
 const SESSION_FD: i32 = 3;
 
@@ -25,7 +25,17 @@ fn run() -> Result<(), String> {
         .and_then(|value| SessionNonce::from_hex(&value).map_err(|error| error.to_string()))?;
 
     let stream = UnixStream::from(session_stream());
-    let client = Client::connect(stream, session, nonce).map_err(|error| error.to_string())?;
+    let mut client = Client::connect(stream, session, nonce).map_err(|error| error.to_string())?;
+    client
+        .log(
+            LogLevel::Info,
+            format!(
+                "Chess version={} build_unix={}",
+                env!("CARGO_PKG_VERSION"),
+                env!("STARTK_BUILD_UNIX")
+            ),
+        )
+        .map_err(|error| error.to_string())?;
     run_session(client)
 }
 
@@ -41,6 +51,9 @@ fn session_stream() -> OwnedFd {
 fn main() -> ExitCode {
     match run() {
         Ok(()) => ExitCode::SUCCESS,
-        Err(_) => ExitCode::FAILURE,
+        Err(error) => {
+            eprintln!("Chess startup/session error: {error}");
+            ExitCode::FAILURE
+        }
     }
 }
