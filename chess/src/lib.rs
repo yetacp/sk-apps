@@ -77,10 +77,10 @@ impl ChessApp {
 
     pub fn view(&self) -> GameView {
         let mut squares = [None; 64];
-        for rank in (1..=8).rev() {
+        for rank in (1_u8..=8).rev() {
             for file in b'a'..=b'h' {
                 let square = format!("{}{}", char::from(file), rank);
-                let index = usize::from(b'8' - rank) * 8 + usize::from(file - b'a');
+                let index = usize::from(8_u8 - rank) * 8 + usize::from(file - b'a');
                 squares[index] = piece_at(&self.game.fen, &square);
             }
         }

@@ -1,7 +1,7 @@
 //! Mapping from chess domain state and semantic controls to StartK UI documents.
 
 use crate::{Action, ChessApp, GameView};
-use startk_ui::{Document, DocumentError, Node};
+use startk_ui::{Alignment, Document, DocumentError, Node};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ControlResult {
@@ -140,7 +140,7 @@ fn screen(view: GameView) -> Node {
     Node::form(
         "chess".to_owned(),
         Vec::new(),
-        Node::column_with_spacing(children, 16, 12),
+        Node::column_with_layout(children, 0, 12, Alignment::Center),
     )
 }
 
@@ -161,4 +161,16 @@ fn square_index(square: &str) -> Option<u8> {
         return None;
     }
     Some((b'8' - bytes[1]) * 8 + bytes[0] - b'a')
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn initial_chess_document_is_valid() {
+        let document = ChessApp::new().document().expect("initial document");
+        Document::decode(&document.encode()).expect("encoded document remains valid");
+        startk_ui::Layout::compute(&document).expect("initial document fits the logical canvas");
+    }
 }

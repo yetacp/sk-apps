@@ -3,6 +3,7 @@
   "apps": [
     {"path": "basic", "id": "org.startk.basic", "version": "0.2.0"},
     {"path": "calculator", "id": "org.startk.calculator", "version": "0.1.0"},
+    {"path": "chess", "id": "org.startk.chess", "version": "0.1.0"},
     {"path": "checklist", "id": "org.startk.checklist", "version": "0.1.0"},
     {"path": "collections", "id": "org.startk.collections", "version": "0.1.0"},
     {"path": "converter", "id": "org.startk.converter", "version": "0.1.0"},

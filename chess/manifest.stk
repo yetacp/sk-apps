@@ -1,13 +1,17 @@
 id = "org.startk.chess"
-title = "Xadrez (protótipo)"
+title = "Xadrez"
 label = "Xadrez"
 icon = "checkerboard"
 version = "0.1.0"
-api = 2
-entrypoint = "app/main.lua"
+api = 3
+runtime = "rust"
+
+[executables]
+linux_x86_64 = "bin/chess-linux-x86_64"
+kobo_armv7_musleabihf = "bin/chess-kobo-armv7-musleabihf"
 
 [capabilities]
-storage_private = false
+storage_private = true
 workspace_read = false
 workspace_write = false
 network = []

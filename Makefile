@@ -2,14 +2,21 @@ APP ?= registration
 REVISION ?= 1
 REPO = yetacp/sk-apps
 
-.PHONY: app-check app-release catalog-release app-publish catalog-publish
+.PHONY: app-check app-prebuild app-release catalog-release app-publish catalog-publish
 
 app-check:
 	rtk python3 tools/release_app.py check
 
-app-release: app-check
+app-release: app-prebuild app-check
 	rtk make -C ../startk current-app-package APP=$(APP) APP_OUT=../sk-apps/dist
 	rtk python3 tools/release_app.py prepare $(APP)
+
+ifeq ($(APP),chess)
+app-prebuild:
+	rtk make -C ../startk current-chess-app-build
+else
+app-prebuild:
+endif
 
 catalog-release: app-check
 	rtk python3 tools/release_app.py catalog $(REVISION)
