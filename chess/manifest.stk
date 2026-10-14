@@ -2,7 +2,7 @@ id = "org.startk.chess"
 title = "Xadrez"
 label = "Xadrez"
 icon = "checkerboard"
-version = "0.1.1"
+version = "0.1.4"
 api = 3
 runtime = "rust"
 

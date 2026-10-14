@@ -38,7 +38,7 @@ pub struct GameView {
     pub flipped: bool,
     pub status: String,
     pub notice: Option<String>,
-    pub last_move: Option<String>,
+    pub recent_rounds: Vec<(usize, String, Option<String>)>,
     pub outcome: Option<String>,
     pub opponent: &'static str,
     pub difficulty: &'static str,
@@ -97,7 +97,7 @@ impl ChessApp {
             flipped: self.game.flipped,
             status: self.game.status(),
             notice: self.game.notice.clone(),
-            last_move: self.game.moves.last().cloned(),
+            recent_rounds: recent_rounds(&self.game.moves),
             outcome: self.game.outcome(),
             opponent: self.game.opponent.label(),
             difficulty: self.game.difficulty.label(),
@@ -135,5 +135,40 @@ impl ChessApp {
         if was_square && self.game.opponent == Opponent::Computer {
             self.game.computer_reply();
         }
+    }
+}
+
+const RECENT_ROUNDS: usize = 6;
+
+fn recent_rounds(moves: &[String]) -> Vec<(usize, String, Option<String>)> {
+    let count = moves.len().div_ceil(2);
+    moves
+        .chunks(2)
+        .enumerate()
+        .skip(count.saturating_sub(RECENT_ROUNDS))
+        .rev()
+        .map(|(index, round)| (index + 1, round[0].clone(), round.get(1).cloned()))
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::recent_rounds;
+
+    #[test]
+    fn recent_rounds_are_newest_first_and_keep_only_six() {
+        let moves: Vec<_> = (1..=16).map(|ply| format!("m{ply}")).collect();
+        let rounds = recent_rounds(&moves);
+
+        assert_eq!(rounds.len(), 6);
+        assert_eq!(rounds[0], (8, "m15".to_owned(), Some("m16".to_owned())));
+        assert_eq!(rounds[5], (3, "m5".to_owned(), Some("m6".to_owned())));
+    }
+
+    #[test]
+    fn recent_rounds_include_an_unanswered_white_move() {
+        let rounds = recent_rounds(&["e4".to_owned()]);
+
+        assert_eq!(rounds, vec![(1, "e4".to_owned(), None)]);
     }
 }

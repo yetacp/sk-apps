@@ -1,18 +1,18 @@
 {
   "schema": 1,
   "apps": [
-    {"path": "basic", "id": "org.startk.basic", "version": "0.2.0"},
-    {"path": "calculator", "id": "org.startk.calculator", "version": "0.2.1"},
-    {"path": "chess", "id": "org.startk.chess", "version": "0.1.1"},
-    {"path": "checklist", "id": "org.startk.checklist", "version": "0.1.0"},
-    {"path": "collections", "id": "org.startk.collections", "version": "0.1.0"},
-    {"path": "converter", "id": "org.startk.converter", "version": "0.1.0"},
-    {"path": "decisions", "id": "org.startk.decisions", "version": "0.1.0"},
-    {"path": "editor", "id": "org.startk.editor", "version": "0.1.0"},
-    {"path": "foundations", "id": "org.startk.foundations", "version": "0.1.0"},
-    {"path": "http-json", "id": "org.startk.http-json", "version": "0.1.0"},
-    {"path": "ipc-storage", "id": "org.startk.ipc-storage", "version": "0.2.0"},
-    {"path": "notes", "id": "org.startk.notes", "version": "0.1.0"},
-    {"path": "registration", "id": "org.startk.registration", "version": "0.2.0"}
+    {"path": "basic", "id": "org.startk.basic"},
+    {"path": "calculator", "id": "org.startk.calculator"},
+    {"path": "chess", "id": "org.startk.chess"},
+    {"path": "checklist", "id": "org.startk.checklist"},
+    {"path": "collections", "id": "org.startk.collections"},
+    {"path": "converter", "id": "org.startk.converter"},
+    {"path": "decisions", "id": "org.startk.decisions"},
+    {"path": "editor", "id": "org.startk.editor"},
+    {"path": "foundations", "id": "org.startk.foundations"},
+    {"path": "http-json", "id": "org.startk.http-json"},
+    {"path": "ipc-storage", "id": "org.startk.ipc-storage"},
+    {"path": "notes", "id": "org.startk.notes"},
+    {"path": "registration", "id": "org.startk.registration"}
   ]
 }

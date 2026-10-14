@@ -10,7 +10,7 @@ Os módulos adaptados permanecem sob AGPL-3.0-only; a licença está em
 `LICENSE` e a origem é o projeto [Cobalt](https://github.com/BandarLabs/Cobalt).
 
 O manifesto API 3 seleciona o runtime Rust e declara executáveis estáticos para
-Linux x86_64 e Kobo ARMv7/musl. `make app-release APP=chess` gera as duas
+Linux x86_64 e Kobo ARMv7/musl. `rtk make -C ../startk app-release APP=chess` gera as duas
 variantes, valida o pacote SKB4 e prepara os artefatos de release. O launcher
 StartK já identifica o runtime no manifesto; o início permanece condicionado à
 política de isolamento nativo descrita no repositório StartK. O binário recebe
