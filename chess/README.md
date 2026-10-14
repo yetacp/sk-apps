@@ -1,22 +1,19 @@
-# Xadrez — primeiro corte
+# Xadrez para StartK
 
-Este pacote exercita o componente `chess_board` no simulador: seleção de casa,
-orientação, coordenadas e ações de toque. As peças são desenhadas a partir de
-`app/assets/chess.png`, um atlas RGBA de 250×84 px com seis peças brancas na
-primeira linha e seis pretas na segunda. `app/assets/chess.sprites.json`
-declara os doze recortes e referencia `chess.png`. O runner envia apenas o nome
-do catálogo ao `startkd`, que
-resolve PNG e catálogo no snapshot validado antes da primeira tela; atualizações
-enviam apenas o estado das casas. O componente
-conserva um desenho de letras quando não há spritesheet.
+`app/` ainda contém o protótipo Lua de apresentação usado pelo runtime atual.
+O núcleo da migração Rust está no pacote Cargo deste diretório: ele reaproveita
+e adapta regras, busca local limitada e validação de partidas do Cobalt, sem
+dependência de `kobo-sdk`/`kobo-ui` nem acesso a I/O. `ChessApp` entrega um
+estado imutável para a UI e recebe ações; o app chamador deverá persistir o
+texto de `save()` pelo broker privado do `startkd`.
+Os módulos adaptados permanecem sob AGPL-3.0-only; a licença está em
+`LICENSE` e a origem é o projeto [Cobalt](https://github.com/BandarLabs/Cobalt).
 
-Ainda não aplica regras de xadrez, não move peças, não tem adversário e não
-salva partidas. Por isso não está no catálogo `apps.json`.
+O manifesto continua em `api = 2` e seleciona Lua porque o launcher StartK ainda
+não aceita apps Rust. Este núcleo, portanto, ainda não é um executável que o
+launcher possa iniciar. A próxima integração é o cliente Rust da API de sessão
+comum, a apresentação por `chess_board` e a persistência mediada pelo daemon.
 
-Execute a partir do StartK com:
-
-```sh
-rtk make current-app-check APP=chess
-rtk make current-app-package APP=chess
-rtk sh -c 'cd src && cargo build --workspace --locked --offline && target/debug/startkd --app ../../sk-apps/chess --sdl-input'
-```
+O tabuleiro usa `app/assets/chess.sprites.json`, que referencia o atlas
+`app/assets/chess.png`. A app seleciona o catálogo por nome; o daemon lê PNG e
+metadados do snapshot do pacote.
