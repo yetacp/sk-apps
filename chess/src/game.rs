@@ -2,7 +2,7 @@
 
 use crate::engine::{piece_at, position, position_key, promotion_choices, tiny_move};
 use crate::save::{self, SavedGame};
-use shakmaty::{fen::Fen, san::San, uci::UciMove, CastlingMode, EnPassantMode, Position as _};
+use shakmaty::{CastlingMode, EnPassantMode, Position as _, fen::Fen, san::San, uci::UciMove};
 use std::collections::BTreeSet;
 
 pub(crate) const START: &str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

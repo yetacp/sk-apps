@@ -2,7 +2,7 @@
 
 use crate::game::Difficulty;
 use shakmaty::{
-    fen::Fen, uci::UciMove, CastlingMode, Chess as Position, EnPassantMode, Position as _,
+    CastlingMode, Chess as Position, EnPassantMode, Position as _, fen::Fen, uci::UciMove,
 };
 
 const MATE: i32 = 100_000;

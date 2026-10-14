@@ -1,14 +1,19 @@
 //! Chess rules, bounded local search, and validated game state for the StartK app.
 //!
-//! This crate has no filesystem, network, UI, or platform access. The future
-//! Rust app adapter owns IPC and sends this domain state to `startkd`.
+//! The domain rules have no filesystem, network, or platform access. Its
+//! session adapter uses the StartK client for UI, IPC, and broker operations.
 
 mod engine;
 mod game;
+pub mod presentation;
 mod save;
+pub mod session;
 
 use crate::engine::piece_at;
-use crate::game::{Game, Opponent};
+use crate::game::{Confirmation, Game, Opponent};
+
+pub use presentation::ControlResult;
+pub use session::run as run_session;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum Action {
@@ -38,6 +43,7 @@ pub struct GameView {
     pub opponent: &'static str,
     pub difficulty: &'static str,
     pub promotion_choices: Vec<char>,
+    pub confirmation: Option<(&'static str, &'static str)>,
 }
 
 /// Rules and game state. It performs no I/O; save strings are passed to the
@@ -54,7 +60,9 @@ impl Default for ChessApp {
 
 impl ChessApp {
     pub fn new() -> Self {
-        Self { game: Game::default() }
+        Self {
+            game: Game::default(),
+        }
     }
 
     /// Restore only a complete, validated record. Invalid input leaves state
@@ -76,7 +84,10 @@ impl ChessApp {
                 squares[index] = piece_at(&self.game.fen, &square);
             }
         }
-        let destinations = self.game.selected.as_deref()
+        let destinations = self
+            .game
+            .selected
+            .as_deref()
             .map(|from| self.game.destinations(from).into_iter().collect())
             .unwrap_or_default();
         GameView {
@@ -90,9 +101,20 @@ impl ChessApp {
             outcome: self.game.outcome(),
             opponent: self.game.opponent.label(),
             difficulty: self.game.difficulty.label(),
-            promotion_choices: self.game.promotion.as_ref()
+            promotion_choices: self
+                .game
+                .promotion
+                .as_ref()
                 .map(|promotion| promotion.choices.clone())
                 .unwrap_or_default(),
+            confirmation: self
+                .game
+                .confirmation
+                .map(|confirmation| match confirmation {
+                    Confirmation::Resign => ("Resign", "Resign this game?"),
+                    Confirmation::Draw => ("Agree draw", "Record this game as an agreed draw?"),
+                    Confirmation::Discard => ("New game", "Discard this game and start a new one?"),
+                }),
         }
     }
 
