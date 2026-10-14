@@ -3,9 +3,11 @@
 Este pacote exercita o componente `chess_board` no simulador: seleção de casa,
 orientação, coordenadas e ações de toque. As peças são desenhadas a partir de
 `app/assets/chess.png`, um atlas RGBA de 250×84 px com seis peças brancas na
-primeira linha e seis pretas na segunda. `app/main.lua` declara os doze
-recortes. O runner envia o PNG e o catálogo em blocos ao `startkd` antes da
-primeira tela; atualizações enviam apenas o estado das casas. O componente
+primeira linha e seis pretas na segunda. `app/assets/chess.sprites.json`
+declara os doze recortes e referencia `chess.png`. O runner envia apenas o nome
+do catálogo ao `startkd`, que
+resolve PNG e catálogo no snapshot validado antes da primeira tela; atualizações
+enviam apenas o estado das casas. O componente
 conserva um desenho de letras quando não há spritesheet.
 
 Ainda não aplica regras de xadrez, não move peças, não tem adversário e não

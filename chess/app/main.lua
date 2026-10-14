@@ -1,10 +1,5 @@
 local form = startk.form('forms/main.frm')
-startk.sprite_sheet('chess.png', {
-  K = {0, 0, 42, 42}, Q = {42, 0, 42, 42}, B = {84, 0, 42, 42},
-  N = {126, 0, 42, 42}, R = {168, 0, 42, 42}, P = {210, 0, 40, 42},
-  k = {0, 42, 42, 42}, q = {42, 42, 42, 42}, b = {84, 42, 42, 42},
-  n = {126, 42, 42, 42}, r = {168, 42, 42, 42}, p = {210, 42, 40, 42},
-})
+startk.sprite_sheet('chess.sprites.json')
 local board = 'rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR'
 
 local app = startk.application({
