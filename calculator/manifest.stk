@@ -2,7 +2,7 @@ id = "org.startk.calculator"
 title = "Calculadora"
 label = "Calculadora"
 icon = "calculator"
-version = "0.1.0"
+version = "0.2.1"
 api = 2
 entrypoint = "app/main.lua"
 [capabilities]

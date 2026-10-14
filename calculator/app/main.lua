@@ -1,58 +1,15 @@
 local form = startk.form('forms/main.frm')
 
-local state = {expression = '0', result = 'Digite um número.'}
-local MAX_DIGITS = 12
+local state = {expression = '0', result = 'Digite uma expressão.'}
+local MAX_EXPRESSION_LENGTH = 64
+local MAX_NUMBER_DIGITS = 12
 local MAX_DECIMAL_PLACES = 6
-local calculator = {
-  accumulator = nil,
-  pending_operator = nil,
-  last_operator = nil,
-  last_operand = nil,
-  entering_new_value = true
-}
-
-local operator_symbols = {
-  add = '+',
-  subtract = '−',
-  multiply = '×',
-  divide = '÷'
-}
-
-local function reset(message)
-  state.expression = '0'
-  state.result = message or 'Digite um número.'
-  calculator.accumulator = nil
-  calculator.pending_operator = nil
-  calculator.last_operator = nil
-  calculator.last_operand = nil
-  calculator.entering_new_value = true
-end
-
-local function number_from_display()
-  local text = state.expression:match('^%s*(.-)%s*$')
-  if not text:match('^%-?%d*[,%.]?%d+$') then
-    return nil, 'Digite apenas um número.'
-  end
-
-  local digits = text:gsub('%D', '')
-  if #digits > MAX_DIGITS then
-    return nil, 'Limite: 12 dígitos.'
-  end
-
-  local decimals = text:match('[,.](%d*)$')
-  if decimals and #decimals > MAX_DECIMAL_PLACES then
-    return nil, 'Limite: 6 casas decimais.'
-  end
-
-  local normalized = text:gsub(',', '.')
-  local value = tonumber(normalized)
-  if not value then
-    return nil, 'Número inválido.'
-  end
-  return value
-end
+local after_result = false
 
 local function display_number(value)
+  if value ~= value or value == math.huge or value == -math.huge then
+    return nil, 'Resultado fora do limite.'
+  end
   if math.abs(value) < 0.000000000001 then
     value = 0
   end
@@ -60,167 +17,276 @@ local function display_number(value)
   if text == '-0' then
     text = '0'
   end
-
-  local digits = text:gsub('%D', '')
-  if #digits > MAX_DIGITS then
+  if #text:gsub('%D', '') > MAX_NUMBER_DIGITS then
     return nil, 'Resultado excede 12 dígitos.'
   end
   return text:gsub('%.', ',')
 end
 
-local function apply_operator(left, operator, right)
-  if operator == '+' then
-    return left + right
+local function evaluate(expression)
+  if #expression > MAX_EXPRESSION_LENGTH then
+    return nil, 'Limite: expressão muito longa.'
   end
-  if operator == '−' then
-    return left - right
+  local text = expression:gsub('−', '-'):gsub('×', '*'):gsub('÷', '/')
+  text = text:gsub(',', '.')
+  local position = 1
+  local parse_sum
+
+  local function skip_spaces()
+    while text:sub(position, position):match('%s') do
+      position = position + 1
+    end
   end
-  if operator == '×' then
-    return left * right
+
+  local function parse_primary()
+    skip_spaces()
+    local value
+    local is_percent = false
+    if text:sub(position, position) == '(' then
+      position = position + 1
+      local err
+      value, is_percent, err = parse_sum()
+      if value == nil then
+        return nil, false, err
+      end
+      skip_spaces()
+      if text:sub(position, position) ~= ')' then
+        return nil, false, 'Falta fechar um parêntese.'
+      end
+      position = position + 1
+    else
+      local remaining = text:sub(position)
+      local literal = remaining:match('^(%d+%.?%d*)') or remaining:match('^(%.%d+)')
+      if not literal then
+        return nil, false, 'Expressão incompleta ou inválida.'
+      end
+      local digits = literal:gsub('%D', '')
+      if #digits > MAX_NUMBER_DIGITS then
+        return nil, false, 'Limite: 12 dígitos por número.'
+      end
+      local decimals = literal:match('%.(%d*)$')
+      if decimals and #decimals > MAX_DECIMAL_PLACES then
+        return nil, false, 'Limite: 6 casas decimais.'
+      end
+      value = tonumber(literal)
+      position = position + #literal
+    end
+
+    skip_spaces()
+    local has_percent_suffix = text:sub(position, position) == '%'
+    if has_percent_suffix then
+      value = value / 100
+      is_percent = true
+      position = position + 1
+    end
+    return value, is_percent
   end
-  if right == 0 then
-    return nil, 'Não é possível dividir por zero.'
+
+  local function parse_unary()
+    skip_spaces()
+    local sign = text:sub(position, position)
+    if sign == '+' or sign == '-' then
+      position = position + 1
+      local value, is_percent, err = parse_unary()
+      if value == nil then
+        return nil, false, err
+      end
+      return sign == '-' and -value or value, is_percent
+    end
+    return parse_primary()
   end
-  return left / right
+
+  local function parse_product()
+    local value, is_percent, err = parse_unary()
+    if value == nil then
+      return nil, false, err
+    end
+    while true do
+      skip_spaces()
+      local operator = text:sub(position, position)
+      if operator ~= '*' and operator ~= '/' then
+        return value, is_percent
+      end
+      position = position + 1
+      local right, _, right_error = parse_unary()
+      if right == nil then
+        return nil, false, right_error
+      end
+      if operator == '/' and right == 0 then
+        return nil, false, 'Não é possível dividir por zero.'
+      end
+      value = operator == '*' and value * right or value / right
+      is_percent = false
+    end
+  end
+
+  parse_sum = function()
+    local value, is_percent, err = parse_product()
+    if value == nil then
+      return nil, false, err
+    end
+    while true do
+      skip_spaces()
+      local operator = text:sub(position, position)
+      if operator ~= '+' and operator ~= '-' then
+        return value, is_percent
+      end
+      position = position + 1
+      local right, right_is_percent, right_error = parse_product()
+      if right == nil then
+        return nil, false, right_error
+      end
+      local amount = right_is_percent and value * right or right
+      value = operator == '+' and value + amount or value - amount
+      is_percent = false
+    end
+  end
+
+  local value, _, err = parse_sum()
+  if value == nil then
+    return nil, err
+  end
+  skip_spaces()
+  if position <= #text then
+    if text:sub(position, position) == ')' then
+      return nil, 'Parêntese sem abertura correspondente.'
+    end
+    return nil, 'Expressão inválida.'
+  end
+  return value
 end
 
-local function fail(ctx, message)
+local function set_status(ctx, message)
   state.result = message
-  calculator.pending_operator = nil
-  calculator.last_operator = nil
-  calculator.last_operand = nil
-  calculator.entering_new_value = true
-  ctx:log('warn', 'calculator: ' .. message)
+  ctx:set(state)
 end
 
-local function apply_submitted_display(event)
-  state = form:values(event)
-  if
-    calculator.entering_new_value and calculator.accumulator ~= nil and
-      state.expression ~= display_number(calculator.accumulator)
-   then
-    calculator.entering_new_value = false
-  end
-end
-
-local function enter_digit(digit)
-  local digits = state.expression:gsub('%D', '')
-  if #digits >= MAX_DIGITS and not calculator.entering_new_value then
-    state.result = 'Limite: 12 dígitos.'
-    return
-  end
-
-  local decimals = state.expression:match('[,.](%d*)$')
-  if decimals and #decimals >= MAX_DECIMAL_PLACES and not calculator.entering_new_value then
-    state.result = 'Limite: 6 casas decimais.'
-    return
-  end
-
-  if calculator.entering_new_value then
+local function append_digit(ctx, digit)
+  if after_result then
     state.expression = digit
-    calculator.entering_new_value = false
+    after_result = false
   elseif state.expression == '0' then
     state.expression = digit
-  elseif state.expression == '-0' then
-    state.expression = '-' .. digit
   else
+    local last = state.expression:sub(-1)
+    if last == ')' or last == '%' then
+      state.expression = state.expression .. '*'
+    end
     state.expression = state.expression .. digit
   end
-  state.result = 'Entrada atual.'
+  if #state.expression > MAX_EXPRESSION_LENGTH then
+    state.expression = state.expression:sub(1, MAX_EXPRESSION_LENGTH)
+    return set_status(ctx, 'Limite: expressão muito longa.')
+  end
+  set_status(ctx, 'Entrada atual.')
 end
 
-local function enter_decimal()
-  if calculator.entering_new_value then
-    state.expression = '0,'
-    calculator.entering_new_value = false
-  elseif not state.expression:find('[,.]') then
-    state.expression = state.expression .. ','
+local function append_operator(ctx, operator)
+  after_result = false
+  local last = state.expression:sub(-1)
+  if state.expression == '0' and operator == '-' then
+    state.expression = '-'
+  elseif last == '(' and operator == '-' then
+    state.expression = state.expression .. '-'
+  elseif last:match('[+%-%*/]') then
+    if operator == '-' then
+      state.expression = state.expression .. '-'
+    else
+      state.expression = state.expression:gsub('[+%-%*/]+$', '') .. operator
+    end
+  elseif last ~= '' and last ~= '(' then
+    state.expression = state.expression .. operator
   end
-  state.result = 'Entrada atual.'
+  set_status(ctx, 'Entrada atual.')
 end
 
-local function choose_operator(ctx, operator)
-  local current, error = number_from_display()
-  if not current then
-    return fail(ctx, error)
-  end
-
-  if calculator.accumulator == nil then
-    calculator.accumulator = current
-  elseif not calculator.entering_new_value then
-    local value
-    value, error = apply_operator(calculator.accumulator, calculator.pending_operator, current)
-    if not value then
-      return fail(ctx, error)
-    end
-    local display
-    display, error = display_number(value)
-    if not display then
-      return fail(ctx, error)
-    end
-    calculator.accumulator = value
-    state.expression = display
-  end
-
-  calculator.pending_operator = operator
-  calculator.last_operator = nil
-  calculator.last_operand = nil
-  calculator.entering_new_value = true
-  local display, error = display_number(calculator.accumulator)
-  if not display then
-    return fail(ctx, error)
-  end
-  state.result = display .. ' ' .. operator
-end
-
-local function calculate(ctx)
-  local current, error = number_from_display()
-  if not current then
-    return fail(ctx, error)
-  end
-
-  if calculator.pending_operator then
-    local value
-    value, error = apply_operator(calculator.accumulator, calculator.pending_operator, current)
-    if not value then
-      return fail(ctx, error)
-    end
-    local display
-    display, error = display_number(value)
-    if not display then
-      return fail(ctx, error)
-    end
-    calculator.last_operator = calculator.pending_operator
-    calculator.last_operand = current
-    calculator.accumulator = value
-    calculator.pending_operator = nil
-    state.expression = display
-  elseif calculator.last_operator then
-    local value
-    value, error = apply_operator(calculator.accumulator or current, calculator.last_operator, calculator.last_operand)
-    if not value then
-      return fail(ctx, error)
-    end
-    local display
-    display, error = display_number(value)
-    if not display then
-      return fail(ctx, error)
-    end
-    calculator.accumulator = value
-    state.expression = display
+local function open_parenthesis(ctx)
+  if after_result or state.expression == '0' then
+    state.expression = '('
+    after_result = false
   else
-    calculator.accumulator = current
-    local display
-    display, error = display_number(current)
-    if not display then
-      return fail(ctx, error)
+    local last = state.expression:sub(-1)
+    if last:match('[%d%)%%]') then
+      state.expression = state.expression .. '*('
+    elseif last:match('[+%-%*/%(]') then
+      state.expression = state.expression .. '('
     end
-    state.expression = display
   end
+  set_status(ctx, 'Entrada atual.')
+end
 
-  state.result = 'Resultado: ' .. state.expression
-  calculator.entering_new_value = true
-  ctx:log('info', 'calculator calculated')
+local function close_parenthesis(ctx)
+  local opens = select(2, state.expression:gsub('%(', ''))
+  local closes = select(2, state.expression:gsub('%)', ''))
+  local last = state.expression:sub(-1)
+  if opens > closes and last:match('[%d%)%%]') then
+    state.expression = state.expression .. ')'
+    after_result = false
+    set_status(ctx, 'Entrada atual.')
+  end
+end
+
+local function enter_decimal(ctx)
+  if after_result then
+    state.expression = '0,'
+    after_result = false
+  else
+    local last = state.expression:sub(-1)
+    if last == ')' or last == '%' then
+      state.expression = state.expression .. '*0,'
+    elseif last:match('[+%-%*/%(]') then
+      state.expression = state.expression .. '0,'
+    else
+      local current_number = state.expression:match('([%d,%.]+)$') or ''
+      if not current_number:find('[,.]') then
+        state.expression = state.expression .. ','
+      end
+    end
+  end
+  set_status(ctx, 'Entrada atual.')
+end
+
+local function enter_percent(ctx)
+  local last = state.expression:sub(-1)
+  if last:match('[%d%)%%]') and last ~= '%' then
+    state.expression = state.expression .. '%'
+    after_result = false
+    set_status(ctx, 'Percentual aplicado à expressão.')
+  end
+end
+
+local function backspace(ctx)
+  if after_result then
+    after_result = false
+  end
+  state.expression = state.expression:sub(1, -2)
+  if state.expression == '' or state.expression == '-' then
+    state.expression = '0'
+  end
+  set_status(ctx, 'Entrada atual.')
+end
+
+local function toggle_sign(ctx)
+  after_result = false
+  local prefix, number = state.expression:match('^(.-)(%d+[,%.]?%d*)$')
+  if not number then
+    if state.expression:sub(1, 2) == '-(' and state.expression:sub(-1) == ')' then
+      state.expression = state.expression:sub(3, -2)
+    else
+      state.expression = '-(' .. state.expression .. ')'
+    end
+  elseif prefix:sub(-1) == '-' then
+    local before_sign = prefix:sub(1, -2)
+    if before_sign == '' or before_sign:match('[+%-%*/%(]$') then
+      prefix = before_sign
+    else
+      number = '-' .. number
+    end
+    state.expression = prefix .. number
+  else
+    state.expression = prefix .. '-' .. number
+  end
+  set_status(ctx, 'Entrada atual.')
 end
 
 local app =
@@ -228,7 +294,11 @@ local app =
   {
     initial_state = state,
     view = function(model)
-      return form:document(model)
+      local visible = {
+        expression = model.expression:gsub('%*', '×'):gsub('/', '÷'):gsub('%-', '−'),
+        result = model.result
+      }
+      return form:document(visible)
     end
   }
 )
@@ -243,103 +313,62 @@ app:on(
 for digit = 0, 9 do
   app:on(
     'calculator.digit' .. digit,
-    function(ctx, event)
-      apply_submitted_display(event)
-      enter_digit(tostring(digit))
-      ctx:set(state)
+    function(ctx)
+      append_digit(ctx, tostring(digit))
     end
   )
 end
 
-app:on(
-  'calculator.decimal',
-  function(ctx, event)
-    apply_submitted_display(event)
-    enter_decimal()
-    ctx:set(state)
-  end
-)
+local operators = {
+  add = '+',
+  subtract = '-',
+  multiply = '*',
+  divide = '/'
+}
 
-for name, symbol in pairs(operator_symbols) do
+for name, operator in pairs(operators) do
   app:on(
     'calculator.' .. name,
-    function(ctx, event)
-      apply_submitted_display(event)
-      choose_operator(ctx, symbol)
-      ctx:set(state)
+    function(ctx)
+      append_operator(ctx, operator)
     end
   )
 end
 
-app:on(
-  'calculator.backspace',
-  function(ctx, event)
-    apply_submitted_display(event)
-    if not calculator.entering_new_value then
-      local start = utf8.offset(state.expression, -1)
-      state.expression = start and state.expression:sub(1, start - 1) or ''
-      if state.expression == '' or state.expression == '-' then
-        state.expression = '0'
-      end
-    end
-    state.result = 'Entrada atual.'
-    ctx:set(state)
-  end
-)
-
-app:on(
-  'calculator.sign',
-  function(ctx, event)
-    apply_submitted_display(event)
-    if calculator.entering_new_value then
-      calculator.entering_new_value = false
-    end
-    if state.expression:sub(1, 1) == '-' then
-      state.expression = state.expression:sub(2)
-    elseif state.expression ~= '0' then
-      state.expression = '-' .. state.expression
-    end
-    state.result = 'Entrada atual.'
-    ctx:set(state)
-  end
-)
-
-app:on(
-  'calculator.percent',
-  function(ctx, event)
-    apply_submitted_display(event)
-    local value, error = number_from_display()
-    if value then
-      local display
-      display, error = display_number(value / 100)
-      if display then
-        state.expression = display
-        calculator.entering_new_value = true
-        state.result = 'Percentual convertido.'
-      else
-        fail(ctx, error)
-      end
-    else
-      fail(ctx, error)
-    end
-    ctx:set(state)
-  end
-)
+app:on('calculator.decimal', enter_decimal)
+app:on('calculator.open_parenthesis', open_parenthesis)
+app:on('calculator.close_parenthesis', close_parenthesis)
+app:on('calculator.percent', enter_percent)
+app:on('calculator.backspace', backspace)
+app:on('calculator.sign', toggle_sign)
 
 app:on(
   'calculator.clear',
   function(ctx)
-    reset('Digite uma nova conta.')
-    ctx:set(state)
+    state.expression = '0'
+    after_result = false
+    set_status(ctx, 'Digite uma nova expressão.')
   end
 )
 
 app:on(
   'calculator.calculate',
-  function(ctx, event)
-    apply_submitted_display(event)
-    calculate(ctx)
-    ctx:set(state)
+  function(ctx)
+    local value, error = evaluate(state.expression)
+    if value == nil then
+      set_status(ctx, error)
+      return
+    end
+    local display
+    display, error = display_number(value)
+    if not display then
+      set_status(ctx, error)
+      return
+    end
+    state.expression = display
+    after_result = true
+    set_status(ctx, 'Resultado.')
+    ctx:log('info', 'calculator calculated')
   end
 )
 

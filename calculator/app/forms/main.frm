@@ -12,14 +12,22 @@ form:
       gap: 16
       align: stretch
       children:
-        - { type: edit, id: expression, field: expression, placeholder: "0", max_length: 14 }
-        - { type: text_box, id: result, field: result, wrap: false, align: right }
+        - type: row
+          gap: 0
+          align: center
+          children:
+            - type: expand
+              weight: 1
+              child: { type: space, width: 0, height: 0 }
+            - { type: label, id: display, field: expression }
         - type: row
           gap: 16
           align: stretch
           children:
             - { type: expand, child: { type: button, id: clear, caption: "C", action: "calculator.clear" } }
             - { type: expand, child: { type: button, id: backspace, caption: "Apagar", action: "calculator.backspace" } }
+            - { type: expand, child: { type: button, id: openParen, caption: "(", action: "calculator.open_parenthesis" } }
+            - { type: expand, child: { type: button, id: closeParen, caption: ")", action: "calculator.close_parenthesis" } }
             - { type: expand, child: { type: button, id: percent, caption: "%", action: "calculator.percent" } }
             - { type: expand, child: { type: button, id: divide, caption: "÷", action: "calculator.divide" } }
         - type: row
@@ -54,3 +62,4 @@ form:
             - { type: expand, child: { type: button, id: digit0, caption: "0", action: "calculator.digit0" } }
             - { type: expand, child: { type: button, id: decimal, caption: ",", action: "calculator.decimal" } }
             - { type: expand, child: { type: button, id: calculate, caption: "=", action: "calculator.calculate" } }
+        - { type: text_box, id: result, field: result, wrap: false, align: right }
