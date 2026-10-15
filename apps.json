@@ -13,6 +13,7 @@
     {"path": "http-json", "id": "org.startk.http-json"},
     {"path": "ipc-storage", "id": "org.startk.ipc-storage"},
     {"path": "notes", "id": "org.startk.notes"},
-    {"path": "registration", "id": "org.startk.registration"}
+    {"path": "registration", "id": "org.startk.registration"},
+    {"path": "system", "id": "org.startk.system"}
   ]
 }

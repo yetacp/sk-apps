@@ -11,5 +11,6 @@ Este repositório contém aplicativos para o runtime corrente do StartK no Kobo 
 | `foundations` | Demonstrar a estrutura visual e os controles fundamentais. |
 | `ipc-storage` | Exercitar os serviços de arquivos privados e SQLite. |
 | `registration` | Cadastrar e consultar registros locais. |
+| `system` | Consultar o dispositivo, acompanhar estatísticas da bateria e ajustar iluminação e Wi-Fi. |
 
 Para criar ou modificar um aplicativo, consulte o [guia de programação Lua](LUA.md).
