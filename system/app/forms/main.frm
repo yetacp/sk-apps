@@ -44,4 +44,5 @@ form:
           align: stretch
           children:
             - { type: button, id: refresh, caption: Atualizar, action: "system.refresh" }
+            - { type: button, id: rndis, caption: USB via RNDIS, action: "system.rndis.open" }
             - { type: button, id: stats, caption: Estatísticas da bateria, action: "system.stats" }

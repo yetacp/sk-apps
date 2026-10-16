@@ -13,8 +13,8 @@ form:
       align: stretch
       children:
         - { type: label, caption: Estatísticas desde as amostras registradas pelo StartK }
-        - { type: text, id: stats, field: stats }
-        - { type: text, id: notice, field: notice }
+        - { type: text_box, id: stats, field: stats, wrap: true }
+        - { type: text_box, id: notice, field: notice, wrap: true }
         - type: row
           gap: 16
           align: stretch
