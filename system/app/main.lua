@@ -4,7 +4,9 @@ local clear_form = startk.form('forms/clear.frm')
 local rndis_form = startk.form('forms/rndis.frm')
 local history = startk.require('history')
 local rndis = startk.require('rndis')
+local ssh = startk.require('ssh')
 local confirm_form = startk.form('forms/rndis-confirm.frm')
+local ssh_form = startk.form('forms/ssh.frm')
 
 local function string_or(value, fallback)
   if type(value) == 'string' then return value end
@@ -19,6 +21,7 @@ end
 local function view(state)
   if state.page == 'rndis_confirm' then return confirm_form:document(state) end
   if state.page == 'rndis' then return rndis_form:document(state) end
+  if state.page == 'ssh' then return ssh_form:document(state) end
   if state.page == 'clear' then return clear_form:document(state) end
   if state.page == 'stats' then return stats_form:document(state) end
   return main_form:document(state)
@@ -42,6 +45,9 @@ local app = startk.application({
     rndis_netmask = rndis.defaults.netmask,
     rndis_status = 'Consultando RNDIS…',
     rndis_instructions = 'Configuração do host manual.',
+    ssh_status = 'Não consultado',
+    ssh_instructions = 'O servidor SSH está inativo até ser iniciado nesta tela.',
+    ssh_running = false,
     notice = 'Lendo informações do dispositivo…',
     stats = 'Carregando estatísticas…'
   },
@@ -194,6 +200,30 @@ app:on('system.rndis.cancel', function(ctx)
   ctx:patch({page='rndis',pending_rndis=false,notice='Operação RNDIS cancelada.'})
 end)
 
+app:on('system.ssh.refresh', function(ctx)
+  ctx:patch(ssh.refresh(ctx))
+end)
+
+app:on('system.ssh.start', function(ctx)
+  local result = ctx:await(startk.system.ssh_start())
+  if not result.ok then
+    ctx:patch({notice='Falha ao iniciar SSH: '..(result.error.message or 'erro')})
+  else
+    ctx:patch({notice='Servidor SSH iniciado na porta 2222.'})
+  end
+  ctx:patch(ssh.refresh(ctx))
+end)
+
+app:on('system.ssh.stop', function(ctx)
+  local result = ctx:await(startk.system.ssh_stop())
+  if not result.ok then
+    ctx:patch({notice='Falha ao parar SSH: '..(result.error.message or 'erro')})
+  else
+    ctx:patch({notice='Servidor SSH parado.'})
+  end
+  ctx:patch(ssh.refresh(ctx))
+end)
+
 app:on('system.stats', function(ctx)
   ctx:patch({page = 'stats'})
 end)
@@ -221,6 +251,11 @@ end)
 
 app:on('system.rndis.open', function(ctx)
   ctx:patch({page = 'rndis'})
+end)
+
+app:on('system.ssh.open', function(ctx)
+  ctx:patch({page='ssh'})
+  ctx:patch(ssh.refresh(ctx))
 end)
 
 app:on('system.clear.cancel', function(ctx)

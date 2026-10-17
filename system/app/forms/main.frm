@@ -40,9 +40,18 @@ form:
         - { type: slider, id: warmth, field: warmth, min: 0, max: 100, step: 10, action: "system.warmth" }
         - { type: text, id: notice, field: notice }
         - type: row
-          gap: 16
+          gap: 12
           align: stretch
           children:
-            - { type: button, id: refresh, caption: Atualizar, action: "system.refresh" }
-            - { type: button, id: rndis, caption: USB via RNDIS, action: "system.rndis.open" }
-            - { type: button, id: stats, caption: Estatísticas da bateria, action: "system.stats" }
+            - type: expand
+              child: { type: button, id: refresh, caption: Atualizar, action: "system.refresh" }
+            - type: expand
+              child: { type: button, id: stats, caption: Estatísticas da bateria, action: "system.stats" }
+        - type: row
+          gap: 12
+          align: stretch
+          children:
+            - type: expand
+              child: { type: button, id: rndis, caption: USB via RNDIS, action: "system.rndis.open" }
+            - type: expand
+              child: { type: button, id: ssh, caption: SSH, action: "system.ssh.open" }

@@ -1,4 +1,20 @@
-# System — controle temporário de RNDIS
+# System — controles do Kobo
+
+## SSH temporário
+
+O formulário SSH inicia e encerra uma instância temporária do OpenSSH do Kobo
+na porta 2222, reutilizando as chaves de host já instaladas em `/etc/ssh/`.
+O estado é consultado pelo PID dedicado do servidor; ele
+não inicia automaticamente nem persiste após reiniciar. A autenticação por
+senha e teclado interativo fica desativada; o acesso root exige uma chave
+pública em `/.ssh/authorized_keys`, relativo ao home `/` de `root` no firmware.
+Cadastre a chave por um método local
+confiável antes de iniciar e confira a impressão digital da chave de host no
+primeiro acesso. Não use o SSH em redes não confiáveis.
+
+No simulador Linux, os controles SSH retornam `device_unavailable`.
+
+## RNDIS temporário
 
 A tela consulta o estado real do gadget e persiste MACs e endereços de rede no
 SQLite privado. Preferências não indicam que RNDIS esteja ativo e não restauram
